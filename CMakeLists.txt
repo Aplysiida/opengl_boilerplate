@@ -28,19 +28,23 @@ set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_SOURCE_DIR} /cmake/")
 # OpenGL
 find_package(OpenGL REQUIRED)
 
-# GLM
 #find_package(GLM REQUIRED)
 #message(STATUS "GLM included at ${GLM_INCLUDE_DIR}")
 
 # GLFW
 add_subdirectory("${PROJECT_SOURCE_DIR}/ext/glfw")
 include_directories("${PROJECT_SOURCE_DIR}/ext/glfw/include")
-
 #this doesn't work since require glfw to be in program x86 folder, just put glfw into project
 #find_package(GLFW3 REQUIRED)
 #message(STATUS "Found GLFW3 in ${GLFW3_INCLUDE_DIR}")
 
+# ImGui
+add_subdirectory("${PROJECT_SOURCE_DIR}/ext/imgui")
+
 #header-only libraries
+# GLM
+add_subdirectory("${PROJECT_SOURCE_DIR}/ext/glm")
+
 # GLAD
 add_library(GLAD "${CMAKE_SOURCE_DIR} /ext/cfiles/glad.c")
 
