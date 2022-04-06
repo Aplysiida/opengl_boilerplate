@@ -1,8 +1,0 @@
-[submodule "opengl_boilerplate/external/glad"]
-    path = opengl_boilerplate/external/glad
-    url = https://github.com/Dav1dde/glad.git
-    branch = c
-[submodule "opengl_boilerplate/external/glfw"]
-    path = opengl_boilerplate/external/glfw
-    url = https://github.com/glfw/glfw.git
-    branch = master
