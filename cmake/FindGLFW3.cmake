@@ -14,16 +14,8 @@
 # 
 # Cmake file from: https://github.com/daw42/glslcookbook
 
-set( _glfw3_HEADER_SEARCH_DIRS
-"/usr/include"
-"/usr/local/include"
-"${CMAKE_SOURCE_DIR}/include"
-"C:/Program Files (x86)/glfw/include" )
-set( _glfw3_LIB_SEARCH_DIRS
-"/usr/lib"
-"/usr/local/lib"
-"${CMAKE_SOURCE_DIR}/lib"
-"C:/Program Files (x86)/glfw/lib-msvc110" )
+set( _glfw3_HEADER_SEARCH_DIRS "${CMAKE_SOURCE_DIR}/ext/include" )
+set( _glfw3_LIB_SEARCH_DIRS "${CMAKE_SOURCE_DIR}/ext/lib" )
 
 # Check environment for root search directory
 set( _glfw3_ENV_ROOT $ENV{GLFW3_ROOT} )

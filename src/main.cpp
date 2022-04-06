@@ -1,12 +1,30 @@
 //std
 #include <iostream>
 
+//imgui
+#include <imgui.h>
+
 //opengl
-#include <glad/glad.h>
-#include <GLFW/glfw3.h>
+#include "glad/glad.h"
+#include "GLFW/glfw3.h"
+
+#include <assimp/Importer.hpp>
+#include <assimp/scene.h>
+#include <assimp/postprocess.h>
+
+#include <glm/glm.hpp>
+#include <glm/gtc/matrix_transform.hpp>
+#include <glm/gtc/type_ptr.hpp>
+
 
 void framebuffer_size_callback(GLFWwindow* window, int width, int height);
 void processInput(GLFWwindow* window);
+
+
+void renderGui() {
+    ImGui::Begin("Options", 0);
+    ImGui::End();
+}
 
 int main() {
 	

@@ -22,39 +22,43 @@ include_directories(${CMAKE_BINARY_DIR}/src)
 add_executable(${PROJECT_NAME} ${HEADER_FILES} ${SOURCE_FILES})
 
 # We need a CMAKE_DIR with some code to find external dependencies
-set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_SOURCE_DIR} /cmake/")
+set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_SOURCE_DIR}/cmake/")
 
 #Libraries
 # OpenGL
 find_package(OpenGL REQUIRED)
 
-#find_package(GLM REQUIRED)
-#message(STATUS "GLM included at ${GLM_INCLUDE_DIR}")
+#Assimp
+find_package(ASSIMP REQUIRED)
+message(STATUS "Found ASSIMP in ${ASSIMP_INCLUDE_DIR}")
 
 # GLFW
-add_subdirectory("${PROJECT_SOURCE_DIR}/ext/glfw")
-include_directories("${PROJECT_SOURCE_DIR}/ext/glfw/include")
+#add_subdirectory("${PROJECT_SOURCE_DIR}/ext/glfw")
+#include_directories("${PROJECT_SOURCE_DIR}/ext/glfw/include")
 #this doesn't work since require glfw to be in program x86 folder, just put glfw into project
-#find_package(GLFW3 REQUIRED)
-#message(STATUS "Found GLFW3 in ${GLFW3_INCLUDE_DIR}")
+find_package(GLFW3 REQUIRED)
+message(STATUS "Found GLFW3 in ${GLFW3_INCLUDE_DIR}")
 
 # ImGui
-add_subdirectory("${PROJECT_SOURCE_DIR}/ext/imgui")
+add_subdirectory("${CMAKE_SOURCE_DIR}/ext/imgui")
 
 #header-only libraries
 # GLM
-add_subdirectory("${PROJECT_SOURCE_DIR}/ext/glm")
+find_package(GLM REQUIRED)
+message(STATUS "GLM included at ${GLM_INCLUDE_DIR}")
 
 # GLAD
-add_library(GLAD "${CMAKE_SOURCE_DIR} /ext/cfiles/glad.c")
+add_library(GLAD "${CMAKE_SOURCE_DIR}/ext/glad/glad.c")
 
 # Put all libraries into a variable
-set(LIBS glfw3 opengl32 GLAD)
+set(LIBS glfw3 imgui opengl32 assimp GLAD)
 
 # Define the include DIRs
 include_directories(
 	"${CMAKE_SOURCE_DIR}/src"
 	"${CMAKE_SOURCE_DIR}/ext/include"
+    "${CMAKE_SOURCE_DIR}/ext/include/glad"
+    "${CMAKE_SOURCE_DIR}/ext/include/glm"
 )
 
 # Define the link libraries
