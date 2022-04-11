@@ -11,9 +11,6 @@ void printVertex(Vertex v) {
 Mesh::Mesh(const std::vector<Vertex>& v, const std::vector<unsigned int>& i) {
 	vertices.insert(vertices.begin(), v.begin(), v.end());	//insert all vertices from v to vertices
 	indices.insert(indices.begin(), i.begin(), i.end());	//insert all indices from i to indices
-	//  
-	//print vertices for now
-	//for_each(v.begin(), v.end(), printVertex);
 	buildMesh();
 }
 
@@ -21,6 +18,12 @@ void Mesh::draw() {
 	glBindVertexArray(VAO);
 	glDrawElements(GL_TRIANGLES, static_cast<unsigned int>(indices.size()), GL_UNSIGNED_INT, 0);
 	glBindVertexArray(0);
+}
+
+void Mesh::destroy() {
+	glDeleteVertexArrays(1, &VAO);
+	glDeleteBuffers(1, &VBO);
+	glDeleteBuffers(1, &IBO);
 }
 
 void Mesh::buildMesh() {

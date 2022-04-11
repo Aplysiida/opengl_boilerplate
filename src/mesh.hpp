@@ -33,5 +33,5 @@ private:
 public:
 	Mesh(const std::vector<Vertex>& v, const std::vector<unsigned int>& i);
 	void draw();
-	//void destroy();
+	void destroy();
 };

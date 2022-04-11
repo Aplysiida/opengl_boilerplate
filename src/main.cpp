@@ -17,13 +17,14 @@
 #include <GLFW/glfw3.h>
 
 //project
-#include "shader.hpp"
+#include "camera.hpp"
 #include "mesh.hpp"
+#include "shader.hpp"
 
 void framebuffer_size_callback(GLFWwindow* window, int width, int height);
 void processInput(GLFWwindow* window);
 
-//GLOBAL VAR
+//GLOBAL VAR    TODO: store these variables somewhere in a class
 //window size
 const int mWidth = 600, mHeight = 800;
 //shader location, remember program starts at build folder
@@ -31,6 +32,11 @@ std::string vertexShaderSource = "../res/shaders/vertex.glsl";
 std::string fragmentShaderSource = "../res/shaders/fragment.glsl";
 //default shader program used
 GLSLShader shader;
+//camera object
+MoveAroundCamera mCamera;
+//mouse variables
+float xLast = mWidth / 2;
+float yLast = mHeight / 2;
 
 void render(Mesh m) {
     //render background colour
@@ -38,10 +44,13 @@ void render(Mesh m) {
     glClear(GL_COLOR_BUFFER_BIT);
     
     //calc proj and view mat
+    //glm::mat4 proj = glm::perspective(1.0f, (float)mWidth/(float)mHeight, 0.1f, 1000.0f);
     glm::mat4 proj = glm::mat4(1.0);
+    //glm::mat4 view = mCamera.getViewMat();
     glm::mat4 view = glm::mat4(1.0);
     //use shader
     shader.use();
+    //set uniforms TODO:: put this in shader class maybe?
     glUniformMatrix4fv(glGetUniformLocation(shader.ID, "uProjectionMatrix"), 1, false, glm::value_ptr(proj));
     glUniformMatrix4fv(glGetUniformLocation(shader.ID, "uModelViewMatrix"), 1, false, glm::value_ptr(view));
 
@@ -80,6 +89,41 @@ void renderGui(ImGuiIO& io) {
     ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
 }
 
+
+/*
+* Process all input: query GLFW for keys pressed
+*/
+void processInput(GLFWwindow* window)
+{
+    if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS)
+        glfwSetWindowShouldClose(window, true);
+}
+
+void mouseCallback(GLFWwindow* window, double xPos, double yPos) {
+    //calculate mouse movement offset
+    float xOffset = xPos - xLast;
+    float yOffset = yPos - yLast;
+    xLast = xPos;
+    yLast = yPos;
+    //might add sensitivity later, add it to imgui as well
+
+    //process mouse movement for camera only if left mouse button is currently pressed
+    mCamera.processMouseCamera(xOffset, yOffset);
+}
+
+void scrollCallback(GLFWwindow* window, double xoffset, double yoffset) {
+    //process scroll movement for camera
+}
+
+/*
+* Called when window size is changed
+*/
+void framebuffer_size_callback(GLFWwindow* window, int width, int height) {
+    glViewport(0, 0, width, height);
+}
+
+// ------ MAIN FUNCTION -------
+
 int main() {
     //load glfw
     glfwInit();
@@ -97,6 +141,8 @@ int main() {
     }
     glfwMakeContextCurrent(mWindow);
     glfwSetFramebufferSizeCallback(mWindow, framebuffer_size_callback);
+    glfwSetCursorPosCallback(mWindow, mouseCallback);
+    glfwSetScrollCallback(mWindow, scrollCallback);
 
     //load glad
     if (!gladLoadGLLoader((GLADloadproc)glfwGetProcAddress)) {
@@ -127,10 +173,10 @@ int main() {
 
     //create triangle
     Vertex v[] = {
-        Vertex{glm::vec3(0.5f,  0.5f, 0.0f), glm::vec3(1.0,0.0,0.0)},
-        Vertex{glm::vec3(0.5f, -0.5f, 0.0f), glm::vec3(1.0,0.0,0.0)},
-        Vertex{glm::vec3(-0.5f, -0.5f, 0.0f), glm::vec3(1.0,0.0,0.0)},
-        Vertex{glm::vec3(-0.5f,  0.5f, 0.0f), glm::vec3(1.0,0.0,0.0)}
+        Vertex{glm::vec3(0.5f,  0.5f, 0.0f), glm::vec3(0,0,1)},
+        Vertex{glm::vec3(0.5f, -0.5f, 0.0f), glm::vec3(0,0,1)},
+        Vertex{glm::vec3(-0.5f, -0.5f, 0.0f), glm::vec3(0,0,1)},
+        Vertex{glm::vec3(-0.5f,  0.5f, 0.0f), glm::vec3(0,0,1)}
     };
     unsigned int i[] = {  // note that we start from 0!
         0, 1, 3,  // first Triangle
@@ -154,6 +200,7 @@ int main() {
         glfwPollEvents();
     }
 
+    m.destroy();
     //shutdown imgui and glfw
     ImGui_ImplOpenGL3_Shutdown();
     ImGui_ImplGlfw_Shutdown();
@@ -161,20 +208,4 @@ int main() {
     glfwTerminate();
 
     return 0;
-}
-
-/*
-* Process all input: query GLFW for keys pressed
-*/
-void processInput(GLFWwindow* window)
-{
-    if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS)
-        glfwSetWindowShouldClose(window, true);
-}
-
-/*
-* Called when window size is changed
-*/
-void framebuffer_size_callback(GLFWwindow* window, int width, int height) {
-    glViewport(0, 0, width, height);
 }
