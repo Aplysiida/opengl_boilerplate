@@ -19,6 +19,7 @@
 //project
 #include "camera.hpp"
 #include "mesh.hpp"
+#include "scene.hpp"
 #include "shader.hpp"
 
 void framebuffer_size_callback(GLFWwindow* window, int width, int height);
@@ -37,25 +38,27 @@ MoveAroundCamera mCamera;
 //mouse variables
 float xLast = mWidth / 2;
 float yLast = mHeight / 2;
+bool leftPressed = false;    //left mouse button pressed 
 
-void render(Mesh m) {
+Scene scene;
+
+void render() {
     //render background colour
     glClearColor(0.25f, 0.25f, 0.25f, 1.0f);
     glClear(GL_COLOR_BUFFER_BIT);
     
     //calc proj and view mat
-    //glm::mat4 proj = glm::perspective(1.0f, (float)mWidth/(float)mHeight, 0.1f, 1000.0f);
-    glm::mat4 proj = glm::mat4(1.0);
-    //glm::mat4 view = mCamera.getViewMat();
-    glm::mat4 view = glm::mat4(1.0);
+    glm::mat4 proj = glm::perspective(1.0f, (float)mWidth/(float)mHeight, 0.1f, 2000.0f);
+    //glm::mat4 proj = glm::mat4(1.0);
+    glm::mat4 view = mCamera.getViewMat();
+    //glm::mat4 view = glm::mat4(1.0);
     //use shader
     shader.use();
     //set uniforms TODO:: put this in shader class maybe?
     glUniformMatrix4fv(glGetUniformLocation(shader.ID, "uProjectionMatrix"), 1, false, glm::value_ptr(proj));
     glUniformMatrix4fv(glGetUniformLocation(shader.ID, "uModelViewMatrix"), 1, false, glm::value_ptr(view));
 
-    m.draw();
-
+    scene.draw();
 }
 
 void renderGui(ImGuiIO& io) {
@@ -67,6 +70,14 @@ void renderGui(ImGuiIO& io) {
     //render gui
     //------ Insert Gui components HERE! -------
     ImGui::Begin("OpenGL boilerplate code");
+    ImGui::Text("Camera Options:");
+    ImGui::SliderFloat("Sensitivity", &mCamera.sensitivity, 0.01f, 1.0f);
+    ImGui::SliderFloat("Speed", &mCamera.cameraSpeed, 0.01f, 1.0f);
+    if (ImGui::Button("Reset camera position")) {
+        mCamera.resetPos();
+    }
+    ImGui::Separator();
+    ImGui::Text("Mesh");
     static char filename[1024] = "";
     if (ImGui::Button("Load Mesh")) {
         ImGui::OpenPopup("Load Mesh");
@@ -74,6 +85,9 @@ void renderGui(ImGuiIO& io) {
     if (ImGui::BeginPopup("Load Mesh")) {
         ImGui::InputText("Filename", filename, 1024);
         if (ImGui::Button("Load")) {
+            //load mesh here
+            scene.destroy();
+            scene = Scene(filename);
             ImGui::CloseCurrentPopup();
         }
         ImGui::SameLine();
@@ -95,11 +109,29 @@ void renderGui(ImGuiIO& io) {
 */
 void processInput(GLFWwindow* window)
 {
+    if (glfwGetKey(window, GLFW_KEY_UP) == GLFW_PRESS) {
+        mCamera.moveCamera(Camera::Forward);
+    }
+    if (glfwGetKey(window, GLFW_KEY_LEFT) == GLFW_PRESS) {
+        mCamera.moveCamera(Camera::Left);
+    }
+    if (glfwGetKey(window, GLFW_KEY_DOWN) == GLFW_PRESS) {
+        mCamera.moveCamera(Camera::Backward);
+    }
+    if (glfwGetKey(window, GLFW_KEY_RIGHT) == GLFW_PRESS) {
+        mCamera.moveCamera(Camera::Right);
+    }
     if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS)
         glfwSetWindowShouldClose(window, true);
 }
 
-void mouseCallback(GLFWwindow* window, double xPos, double yPos) {
+void mouseButtonCallback(GLFWwindow* window, int button, int action, int mods) {
+    if (button == GLFW_MOUSE_BUTTON_LEFT) {
+        leftPressed = (action == GLFW_PRESS);       
+    }
+}
+
+void cursorPosCallback(GLFWwindow* window, double xPos, double yPos) {
     //calculate mouse movement offset
     float xOffset = xPos - xLast;
     float yOffset = yPos - yLast;
@@ -108,7 +140,9 @@ void mouseCallback(GLFWwindow* window, double xPos, double yPos) {
     //might add sensitivity later, add it to imgui as well
 
     //process mouse movement for camera only if left mouse button is currently pressed
-    mCamera.processMouseCamera(xOffset, yOffset);
+    if (leftPressed) {
+        mCamera.processMouseCamera(xOffset, yOffset);
+    }
 }
 
 void scrollCallback(GLFWwindow* window, double xoffset, double yoffset) {
@@ -141,7 +175,8 @@ int main() {
     }
     glfwMakeContextCurrent(mWindow);
     glfwSetFramebufferSizeCallback(mWindow, framebuffer_size_callback);
-    glfwSetCursorPosCallback(mWindow, mouseCallback);
+    glfwSetMouseButtonCallback(mWindow, mouseButtonCallback);
+    glfwSetCursorPosCallback(mWindow, cursorPosCallback);
     glfwSetScrollCallback(mWindow, scrollCallback);
 
     //load glad
@@ -170,28 +205,11 @@ int main() {
     //setup style
     ImGui::StyleColorsClassic();
 
-
-    //create triangle
-    Vertex v[] = {
-        Vertex{glm::vec3(0.5f,  0.5f, 0.0f), glm::vec3(0,0,1)},
-        Vertex{glm::vec3(0.5f, -0.5f, 0.0f), glm::vec3(0,0,1)},
-        Vertex{glm::vec3(-0.5f, -0.5f, 0.0f), glm::vec3(0,0,1)},
-        Vertex{glm::vec3(-0.5f,  0.5f, 0.0f), glm::vec3(0,0,1)}
-    };
-    unsigned int i[] = {  // note that we start from 0!
-        0, 1, 3,  // first Triangle
-        1, 2, 3   // second Triangle
-    };
-    std::vector<Vertex> ver(std::begin(v), std::end(v));
-    std::vector<unsigned int> ind(std::begin(i), std::end(i));
-
-    Mesh m(ver, ind);
-
     //render window loop
     while (!glfwWindowShouldClose(mWindow)) {
         processInput(mWindow);
 
-        render(m);
+        render();
         //render gui
         renderGui(io);
 
@@ -200,7 +218,7 @@ int main() {
         glfwPollEvents();
     }
 
-    m.destroy();
+    scene.destroy();
     //shutdown imgui and glfw
     ImGui_ImplOpenGL3_Shutdown();
     ImGui_ImplGlfw_Shutdown();

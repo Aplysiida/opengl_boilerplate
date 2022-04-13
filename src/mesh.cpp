@@ -8,6 +8,40 @@ void printVertex(Vertex v) {
 	std::cout << "Position: {" << v.pos.x << ", " << v.pos.y << ", " << v.pos.z << "}" << std::endl;
 }
 
+Mesh::Mesh(const aiMesh* mesh, const aiScene* scene) {
+	//vertices
+	for (int i = 0; i < mesh->mNumVertices; i++) {
+		Vertex vertex;
+		//convert from assimp to glm
+		//position
+		glm::vec3 v;
+		v.x = mesh->mVertices[i].x;
+		v.y = mesh->mVertices[i].y;
+		v.z = mesh->mVertices[i].z;
+		vertex.pos = v;
+		//normal
+		if (mesh->HasNormals()) {
+			v.x = mesh->mNormals[i].x;
+			v.y = mesh->mNormals[i].y;
+			v.z = mesh->mNormals[i].z;
+			vertex.normal = v;
+		}
+
+		vertices.push_back(vertex);
+
+		//don't need texture coord for now
+	}
+	//indices
+	for (int i = 0; i < mesh->mNumFaces; i++) {
+		aiFace face = mesh->mFaces[i];
+		for (int j = 0; j < face.mNumIndices; j++) {
+			indices.push_back(face.mIndices[j]);
+		}
+	}
+
+	buildMesh();
+}
+
 Mesh::Mesh(const std::vector<Vertex>& v, const std::vector<unsigned int>& i) {
 	vertices.insert(vertices.begin(), v.begin(), v.end());	//insert all vertices from v to vertices
 	indices.insert(indices.begin(), i.begin(), i.end());	//insert all indices from i to indices

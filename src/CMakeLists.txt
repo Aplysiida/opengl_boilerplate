@@ -1,6 +1,7 @@
 SET(sources
 	"main.cpp"
 	# might move this into new subdirectory
+	"camera.hpp"
 	"mesh.hpp"
 	"mesh.cpp"
 	"shader.hpp"

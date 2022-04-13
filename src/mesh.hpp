@@ -2,6 +2,8 @@
 //std
 #include <iostream>
 #include <vector>
+//assimp
+#include <assimp/scene.h>
 //glm
 #include <glm/glm.hpp>
 //glad
@@ -31,7 +33,8 @@ private:
 
 	void buildMesh();
 public:
-	Mesh(const std::vector<Vertex>& v, const std::vector<unsigned int>& i);
+	Mesh(const aiMesh* mesh, const aiScene* scene);	//build mesh if have mesh node from assimp
+	Mesh(const std::vector<Vertex>& v, const std::vector<unsigned int>& i);	//build mesh if already have vertices and indices defined
 	void draw();
 	void destroy();
 };
