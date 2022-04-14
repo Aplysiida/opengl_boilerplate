@@ -27,7 +27,7 @@ void processInput(GLFWwindow* window);
 
 //GLOBAL VAR    TODO: store these variables somewhere in a class
 //window size
-const int mWidth = 600, mHeight = 800;
+int mWidth = 1280, mHeight = 960;
 //shader location, remember program starts at build folder
 std::string vertexShaderSource = "../res/shaders/vertex.glsl";
 std::string fragmentShaderSource = "../res/shaders/fragment.glsl";
@@ -45,10 +45,10 @@ Scene scene;
 void render() {
     //render background colour
     glClearColor(0.25f, 0.25f, 0.25f, 1.0f);
-    glClear(GL_COLOR_BUFFER_BIT);
+    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
     
     //calc proj and view mat
-    glm::mat4 proj = glm::perspective(1.0f, (float)mWidth/(float)mHeight, 0.1f, 2000.0f);
+    glm::mat4 proj = glm::perspective(glm::radians(45.0f), (float)mWidth/(float)mHeight, 0.1f, 2000.0f);
     //glm::mat4 proj = glm::mat4(1.0);
     glm::mat4 view = mCamera.getViewMat();
     //glm::mat4 view = glm::mat4(1.0);
@@ -70,6 +70,8 @@ void renderGui(ImGuiIO& io) {
     //render gui
     //------ Insert Gui components HERE! -------
     ImGui::Begin("OpenGL boilerplate code");
+    ImGui::Text("%.1f fps", io.Framerate);
+    ImGui::Separator();
     ImGui::Text("Camera Options:");
     ImGui::SliderFloat("Sensitivity", &mCamera.sensitivity, 0.01f, 1.0f);
     ImGui::SliderFloat("Speed", &mCamera.cameraSpeed, 0.01f, 1.0f);
@@ -137,7 +139,6 @@ void cursorPosCallback(GLFWwindow* window, double xPos, double yPos) {
     float yOffset = yPos - yLast;
     xLast = xPos;
     yLast = yPos;
-    //might add sensitivity later, add it to imgui as well
 
     //process mouse movement for camera only if left mouse button is currently pressed
     if (leftPressed) {
@@ -153,6 +154,8 @@ void scrollCallback(GLFWwindow* window, double xoffset, double yoffset) {
 * Called when window size is changed
 */
 void framebuffer_size_callback(GLFWwindow* window, int width, int height) {
+    mWidth = width;
+    mHeight = height;
     glViewport(0, 0, width, height);
 }
 
@@ -184,6 +187,8 @@ int main() {
         std::cerr << "Failed to initialize GLAD" << std::endl;
         return -1;
     }
+
+    glEnable(GL_DEPTH_TEST);
 
     //build shader program to use
     shader = GLSLShader(vertexShaderSource, fragmentShaderSource);

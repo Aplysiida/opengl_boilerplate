@@ -26,7 +26,6 @@ Mesh::Mesh(const aiMesh* mesh, const aiScene* scene) {
 			v.z = mesh->mNormals[i].z;
 			vertex.normal = v;
 		}
-
 		vertices.push_back(vertex);
 
 		//don't need texture coord for now
