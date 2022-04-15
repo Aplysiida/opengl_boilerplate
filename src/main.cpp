@@ -26,8 +26,9 @@ void framebuffer_size_callback(GLFWwindow* window, int width, int height);
 void processInput(GLFWwindow* window);
 
 //GLOBAL VAR    TODO: store these variables somewhere in a class
+GLFWwindow* mWindow;
 //window size
-int mWidth = 1280, mHeight = 960;
+const int mWidth = 1280, mHeight = 960;
 //shader location, remember program starts at build folder
 std::string vertexShaderSource = "../res/shaders/vertex.glsl";
 std::string fragmentShaderSource = "../res/shaders/fragment.glsl";
@@ -35,6 +36,8 @@ std::string fragmentShaderSource = "../res/shaders/fragment.glsl";
 GLSLShader shader;
 //camera object
 MoveAroundCamera mCamera;
+OrbitalCamera oCamera;
+Camera* camera; //camera pointer to currently selected camera
 //mouse variables
 float xLast = mWidth / 2;
 float yLast = mHeight / 2;
@@ -48,9 +51,11 @@ void render() {
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
     
     //calc proj and view mat
-    glm::mat4 proj = glm::perspective(glm::radians(45.0f), (float)mWidth/(float)mHeight, 0.1f, 2000.0f);
+    int width, height;
+    glfwGetWindowSize(mWindow, &width, &height);
+    glm::mat4 proj = glm::perspective(camera->fov, (float)width / (float)height, 0.1f, 2000.0f);
     //glm::mat4 proj = glm::mat4(1.0);
-    glm::mat4 view = mCamera.getViewMat();
+    glm::mat4 view = camera->getViewMat();
     //glm::mat4 view = glm::mat4(1.0);
     //use shader
     shader.use();
@@ -73,10 +78,30 @@ void renderGui(ImGuiIO& io) {
     ImGui::Text("%.1f fps", io.Framerate);
     ImGui::Separator();
     ImGui::Text("Camera Options:");
-    ImGui::SliderFloat("Sensitivity", &mCamera.sensitivity, 0.01f, 1.0f);
-    ImGui::SliderFloat("Speed", &mCamera.cameraSpeed, 0.01f, 1.0f);
+
+    static int selectCamera = 0;
+    ImGui::RadioButton("Move Around", &selectCamera, 0); ImGui::SameLine();
+    ImGui::RadioButton("Orbital", &selectCamera, 1);
+
+    ImGui::SliderFloat("Sensitivity", &camera->sensitivity, 0.01f, 1.0f);
+    ImGui::SliderFloat("FOV", &camera->fov, 0.01f, 3.0f);
+
+    switch (selectCamera) { 
+        case 1: //orbital
+            camera = &oCamera;
+            ImGui::Text("Orbital Camera");
+            ImGui::SliderFloat("Distance", &oCamera.distance, 0.0f, 800.0f);
+            break;
+        default:    //move around
+            camera = &mCamera;
+            ImGui::Text("Move Around Camera");
+            ImGui::SliderFloat("Speed", &mCamera.cameraSpeed, 0.01f, 1.0f);
+            break;
+    }
+
     if (ImGui::Button("Reset camera position")) {
         mCamera.resetPos();
+        oCamera.resetPos();
     }
     ImGui::Separator();
     ImGui::Text("Mesh");
@@ -134,28 +159,27 @@ void mouseButtonCallback(GLFWwindow* window, int button, int action, int mods) {
 }
 
 void cursorPosCallback(GLFWwindow* window, double xPos, double yPos) {
-    //calculate mouse movement offset
-    float xOffset = xPos - xLast;
-    float yOffset = yPos - yLast;
-    xLast = xPos;
-    yLast = yPos;
-
     //process mouse movement for camera only if left mouse button is currently pressed
     if (leftPressed) {
-        mCamera.processMouseCamera(xOffset, yOffset);
+        camera->processMouseCamera(glm::vec2(xPos, yPos), glm::vec2(xLast, yLast));
     }
+
+    xLast = xPos;
+    yLast = yPos;
 }
 
 void scrollCallback(GLFWwindow* window, double xoffset, double yoffset) {
     //process scroll movement for camera
+    oCamera.distance -= (float)yoffset;
+    if (oCamera.distance < 0.0f) {
+        oCamera.distance = 0.0f;
+    }
 }
 
 /*
 * Called when window size is changed
 */
 void framebuffer_size_callback(GLFWwindow* window, int width, int height) {
-    mWidth = width;
-    mHeight = height;
     glViewport(0, 0, width, height);
 }
 
@@ -170,7 +194,7 @@ int main() {
     //glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);
 
     //create glfw window
-    auto mWindow = glfwCreateWindow(mWidth, mHeight, "OpenGl", nullptr, nullptr);
+    mWindow = glfwCreateWindow(mWidth, mHeight, "OpenGl", nullptr, nullptr);
     if (mWindow == nullptr) {
         std::cerr << "Failed to create window  " << std::endl;
         glfwTerminate();
@@ -209,6 +233,8 @@ int main() {
 
     //setup style
     ImGui::StyleColorsClassic();
+
+    camera = &mCamera;
 
     //render window loop
     while (!glfwWindowShouldClose(mWindow)) {
