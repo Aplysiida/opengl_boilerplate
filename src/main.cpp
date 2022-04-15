@@ -1,5 +1,6 @@
 //std
 #include <iostream>
+#include <sstream>
 
 //imgui
 #include <imgui.h>
@@ -54,9 +55,7 @@ void render() {
     int width, height;
     glfwGetWindowSize(mWindow, &width, &height);
     glm::mat4 proj = glm::perspective(camera->fov, (float)width / (float)height, 0.1f, 2000.0f);
-    //glm::mat4 proj = glm::mat4(1.0);
     glm::mat4 view = camera->getViewMat();
-    //glm::mat4 view = glm::mat4(1.0);
     //use shader
     shader.use();
     //set uniforms TODO:: put this in shader class maybe?
@@ -76,6 +75,7 @@ void renderGui(ImGuiIO& io) {
     //------ Insert Gui components HERE! -------
     ImGui::Begin("OpenGL boilerplate code");
     ImGui::Text("%.1f fps", io.Framerate);
+    ImGui::Text("Use arrow keys to move MoveAround camera and scroll wheel\nto change Orbital camera distance");
     ImGui::Separator();
     ImGui::Text("Camera Options:");
 
@@ -222,10 +222,15 @@ int main() {
     ImGui::CreateContext();
     ImGuiIO& io = ImGui::GetIO();
 
-    //todo: change this to get current glsl version
-    //std::cout << "glsl = " << glGetString(GL_SHADING_LANGUAGE_VERSION) << std::endl;
-    //"version " + 
-    const char* glsl_version = "#version 330";
+    //get current glsl version, 330 is recommended
+    std::string str(reinterpret_cast<const char*>(glGetString(GL_SHADING_LANGUAGE_VERSION)));
+    //skip words to get to version number
+    str = str.substr(0,4);
+    str.erase(remove(str.begin(), str.end(), '.'));
+    
+    str.insert(0, "#version ");
+    const char* glsl_version = str.c_str();
+
 
     //setup platform/renderer
     ImGui_ImplGlfw_InitForOpenGL(mWindow, true);

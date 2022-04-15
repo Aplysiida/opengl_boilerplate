@@ -42,7 +42,12 @@ private:
 public:
     Scene() {}
     Scene(std::string filePath) {
-        loadScene(filePath);
+        try {
+            loadScene(filePath);
+        }
+        catch (SceneError e) {
+            std::cerr << "ERROR: scene cannot be loaded" << std::endl;
+        }
     }
 
     void draw() {
