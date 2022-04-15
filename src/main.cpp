@@ -30,6 +30,7 @@ void processInput(GLFWwindow* window);
 GLFWwindow* mWindow;
 //window size
 const int mWidth = 1280, mHeight = 960;
+bool drawWireframe = false; //check for if should draw wireframe
 //shader location, remember program starts at build folder
 std::string vertexShaderSource = "../res/shaders/vertex.glsl";
 std::string fragmentShaderSource = "../res/shaders/fragment.glsl";
@@ -56,12 +57,14 @@ void render() {
     glfwGetWindowSize(mWindow, &width, &height);
     glm::mat4 proj = glm::perspective(camera->fov, (float)width / (float)height, 0.1f, 2000.0f);
     glm::mat4 view = camera->getViewMat();
+
     //use shader
     shader.use();
     //set uniforms TODO:: put this in shader class maybe?
     glUniformMatrix4fv(glGetUniformLocation(shader.ID, "uProjectionMatrix"), 1, false, glm::value_ptr(proj));
     glUniformMatrix4fv(glGetUniformLocation(shader.ID, "uModelViewMatrix"), 1, false, glm::value_ptr(view));
 
+    glPolygonMode(GL_FRONT_AND_BACK, (drawWireframe) ? GL_LINE : GL_FILL);
     scene.draw();
 }
 
@@ -123,6 +126,7 @@ void renderGui(ImGuiIO& io) {
         }
         ImGui::EndPopup();
     }
+    ImGui::Checkbox("Wireframe", &drawWireframe);
     ImGui::End();
 
     //render imgui onto screen
