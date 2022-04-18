@@ -18,10 +18,10 @@
 #include <GLFW/glfw3.h>
 
 //project
-#include "camera.hpp"
-#include "mesh.hpp"
-#include "scene.hpp"
-#include "shader.hpp"
+#include "boilerplate/camera.hpp"
+#include "boilerplate/mesh.hpp"
+#include "boilerplate/scene.hpp"
+#include "boilerplate/shader.hpp"
 
 void framebuffer_size_callback(GLFWwindow* window, int width, int height);
 void processInput(GLFWwindow* window);
@@ -90,16 +90,16 @@ void renderGui(ImGuiIO& io) {
     ImGui::SliderFloat("FOV", &camera->fov, 0.01f, 3.0f);
 
     switch (selectCamera) { 
-        case 1: //orbital
-            camera = &oCamera;
-            ImGui::Text("Orbital Camera");
-            ImGui::SliderFloat("Distance", &oCamera.distance, 0.0f, 800.0f);
-            break;
-        default:    //move around
-            camera = &mCamera;
-            ImGui::Text("Move Around Camera");
-            ImGui::SliderFloat("Speed", &mCamera.cameraSpeed, 0.01f, 1.0f);
-            break;
+    case 1: //orbital
+        camera = &oCamera;
+        ImGui::Text("Orbital Camera");
+        ImGui::SliderFloat("Distance", &oCamera.distance, 0.0f, 800.0f);
+        break;
+    default:    //move around
+        camera = &mCamera;
+        ImGui::Text("Move Around Camera");
+        ImGui::SliderFloat("Speed", &mCamera.cameraSpeed, 0.01f, 1.0f);
+        break;
     }
 
     if (ImGui::Button("Reset camera position")) {
@@ -127,6 +127,22 @@ void renderGui(ImGuiIO& io) {
         ImGui::EndPopup();
     }
     ImGui::Checkbox("Wireframe", &drawWireframe);
+
+    //------ CGRA409 Part ------
+    ImGui::Separator();
+    static int selectPart = 0;
+    ImGui::RadioButton("Default", &selectPart, 0);
+    ImGui::SameLine();
+    ImGui::RadioButton("Core", &selectPart, 1);
+    switch (selectPart) {
+    case 1:
+        ImGui::Text("Mesh Fairing with uniform weights");
+        break;
+    default:
+        ImGui::Text("Default unedited mesh");
+        break;
+    }
+
     ImGui::End();
 
     //render imgui onto screen
