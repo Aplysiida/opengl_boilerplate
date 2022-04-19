@@ -33,8 +33,16 @@ private:
 
 	void buildMesh();
 public:
+	Mesh() { VAO = -1; VBO = -1; IBO = -1; }
+	Mesh(const Mesh& obj);	//copy constructor
 	Mesh(const aiMesh* mesh, const aiScene* scene);	//build mesh if have mesh node from assimp
 	Mesh(const std::vector<Vertex>& v, const std::vector<unsigned int>& i);	//build mesh if already have vertices and indices defined
 	void draw();
 	void destroy();
+
+	void printI() { 
+		for (auto i : indices) { std::cout << i << std::endl; }
+	}
+
+	int getVerticesNum() { return vertices.size(); }
 };

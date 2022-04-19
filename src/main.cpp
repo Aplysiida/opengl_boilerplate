@@ -65,7 +65,7 @@ void render() {
     glUniformMatrix4fv(glGetUniformLocation(shader.ID, "uModelViewMatrix"), 1, false, glm::value_ptr(view));
 
     glPolygonMode(GL_FRONT_AND_BACK, (drawWireframe) ? GL_LINE : GL_FILL);
-    scene.draw();
+    scene.drawMesh();
 }
 
 void renderGui(ImGuiIO& io) {
@@ -137,9 +137,11 @@ void renderGui(ImGuiIO& io) {
     switch (selectPart) {
     case 1:
         ImGui::Text("Mesh Fairing with uniform weights");
+        scene.currentMesh = 1;
         break;
     default:
         ImGui::Text("Default unedited mesh");
+        scene.currentMesh = 0;
         break;
     }
 
@@ -243,6 +245,7 @@ int main() {
     ImGuiIO& io = ImGui::GetIO();
 
     //get current glsl version, 330 is recommended
+    std::cout << "GL version:" << glGetString(GL_VERSION) << std::endl;
     std::string str(reinterpret_cast<const char*>(glGetString(GL_SHADING_LANGUAGE_VERSION)));
     //skip words to get to version number
     str = str.substr(0,4);

@@ -41,6 +41,14 @@ Mesh::Mesh(const aiMesh* mesh, const aiScene* scene) {
 	buildMesh();
 }
 
+Mesh::Mesh(const Mesh& obj) {
+	//insert all vertices from obj to vertices
+	vertices.insert(vertices.begin(), obj.vertices.begin(), obj.vertices.end());
+	//insert all indices from obj to indices
+	indices.insert(indices.begin(), obj.indices.begin(), obj.indices.end());	
+	buildMesh();
+}
+
 Mesh::Mesh(const std::vector<Vertex>& v, const std::vector<unsigned int>& i) {
 	vertices.insert(vertices.begin(), v.begin(), v.end());	//insert all vertices from v to vertices
 	indices.insert(indices.begin(), i.begin(), i.end());	//insert all indices from i to indices

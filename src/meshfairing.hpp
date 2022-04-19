@@ -3,11 +3,7 @@
 
 class MeshFairing {
 private:
-	Mesh inputMesh;
-
-	void buildLaplacian();
+	static void buildLaplacian(Mesh& mesh);	//build the laplacian matrix, n = number of vertices
 public:
-	MeshFairing(const Mesh& inputM) : inputMesh(inputM) {}
-
-	//Mesh core();	//Mesh fairing with uniform weights
+	static Mesh core(const Mesh& m);	//Mesh fairing with uniform weights
 };

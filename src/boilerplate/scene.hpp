@@ -3,6 +3,7 @@
 #include <assimp/postprocess.h>
 //project
 #include "mesh.hpp"
+#include "meshfairing.hpp"
 
 //error structs
 struct SceneError : public std::runtime_error {
@@ -40,6 +41,8 @@ private:
         std::cout << "Loaded scene" << std::endl;
     }
 public:
+    int currentMesh = 0;    //current mesh to draw
+
     Scene() {}
     Scene(std::string filePath) {
         try {
@@ -47,9 +50,24 @@ public:
         }
         catch (SceneError e) {
             std::cerr << "ERROR: scene cannot be loaded" << std::endl;
+            return;
+        }
+
+        //do mesh fairing on mesh if there's only 1 mesh
+        if (meshes.size() == 1) {
+            //do core mesh smoothing
+            meshes.push_back(MeshFairing::core(meshes[0]));
         }
     }
 
+    //used for this assignment since only want to draw one mesh
+    void drawMesh() {
+        if (!meshes.empty()) {
+            meshes[currentMesh].draw();
+        }
+    }
+
+    //don't need to draw all meshes in scene so don't use this function
     void draw() {
         for (auto mesh : meshes) {
             mesh.draw();
