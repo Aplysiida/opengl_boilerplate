@@ -1,9 +1,12 @@
+//eigen
+#include <Eigen/Sparse>
 //project
 #include "boilerplate/mesh.hpp"
 
 class MeshFairing {
 private:
-	static void buildLaplacian(Mesh& mesh);	//build the laplacian matrix, n = number of vertices
+	//build the laplacian matrix with uniform weights, n = number of vertices
+	static void buildLaplacianUniform(Mesh& mesh, Eigen::SparseMatrix<float>& l);
 public:
 	static Mesh core(const Mesh& m);	//Mesh fairing with uniform weights
 };

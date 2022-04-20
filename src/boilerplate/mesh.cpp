@@ -55,6 +55,25 @@ Mesh::Mesh(const std::vector<Vertex>& v, const std::vector<unsigned int>& i) {
 	buildMesh();
 }
 
+void Mesh::generateNormals(const std::vector<glm::vec3>& positions, std::vector<glm::vec3>& normals) {
+	normals = std::vector< glm::vec3>(vertices.size());
+	for (int i = 0; i < indices.size(); i += 3) {
+		//get face, assuming all faces are triangles because all provided models are triangles
+		glm::vec3 a = positions[indices[i]];
+		glm::vec3 b = positions[indices[i+1]];
+		glm::vec3 c = positions[indices[i+2]];
+		glm::vec3 normal = glm::normalize(glm::cross((c-b), (a-b)));	//compute face normal
+		//assign face normals
+		normals[indices[i]] += normal;
+		normals[indices[i + 1]] += normal;
+		normals[indices[i + 2]] += normal;
+	}
+	//normalize normals
+	for (auto n : normals) {
+		n = glm::normalize(n);
+	}
+}
+
 void Mesh::draw() {
 	glBindVertexArray(VAO);
 	glDrawElements(GL_TRIANGLES, static_cast<unsigned int>(indices.size()), GL_UNSIGNED_INT, 0);
@@ -65,6 +84,26 @@ void Mesh::destroy() {
 	glDeleteVertexArrays(1, &VAO);
 	glDeleteBuffers(1, &VBO);
 	glDeleteBuffers(1, &IBO);
+}
+
+void Mesh::setupExVertices() {
+	for (auto &v : vertices) {
+		exVertices.push_back(ExtendedVertex(v));
+	}
+}
+
+void Mesh::setVertexNeighbours(std::vector<unsigned int> indices) {
+	//for each vertex get neighbouring two vertices in face
+	//for first vertex get final vertex as well
+	exVertices[0].neighbouringVertices.insert(indices[1]);
+	exVertices[0].neighbouringVertices.insert(indices[indices.size()-1]);
+	for (int i = 1; i < indices.size()-1; i++) {
+		exVertices[i].neighbouringVertices.insert(indices[i - 1]);
+		exVertices[i].neighbouringVertices.insert(indices[i + 1]);
+	}
+	//for final vertex get first vertex as well
+	exVertices[indices.size() - 1].neighbouringVertices.insert(indices.size()-2);
+	exVertices[indices.size() - 1].neighbouringVertices.insert(indices[0]);
 }
 
 void Mesh::buildMesh() {
