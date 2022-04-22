@@ -22,12 +22,20 @@ struct Vertex {	//don't need texture coord for now
 /*
 * Represents vertex that has been extended to include neighbouring vertices
 */
-struct ExtendedVertex {
-	const Vertex vertex;
-	std::set<unsigned int> neighbouringVertices;	//index of neighbouring vertices
+class ExtendedVertex {
+private:
+	Vertex vertex;
 
+public:
+	std::set<unsigned int> neighbouringVertices;	//index of neighbouring vertices
 	ExtendedVertex() {}
 	ExtendedVertex(Vertex v) : vertex(v) {}
+	ExtendedVertex(const ExtendedVertex& obj) { 
+		vertex = obj.vertex; 
+		neighbouringVertices.insert(obj.neighbouringVertices.begin(), obj.neighbouringVertices.end());
+	}
+
+	Vertex& getVertex() { return vertex; }
 };
 
 /*
@@ -51,13 +59,14 @@ public:
 	Mesh() { VAO = -1; VBO = -1; IBO = -1; }
 	Mesh(const Mesh& obj);	//copy constructor
 	Mesh(const aiMesh* mesh, const aiScene* scene);	//build mesh if have mesh node from assimp
-	Mesh(const std::vector<Vertex>& v, const std::vector<unsigned int>& i);	//build mesh if already have vertices and indices defined
+	Mesh(const std::vector<glm::vec3>& positions, const std::vector<unsigned int>& i);
 	void generateNormals(const std::vector<glm::vec3>& positions, std::vector<glm::vec3>& normals);
 	void draw();
 	void destroy();
 
 	ExtendedVertex getExVertex(int i) { return exVertices[i]; }
 	void setupExVertices();	//set up extended vertices
+	void copyNeighbours(const Mesh& m);
 	void setVertexNeighbours(std::vector<unsigned int> indices);	//set up vertex neighbours
 	int getVerticesNum() { return vertices.size(); }
 

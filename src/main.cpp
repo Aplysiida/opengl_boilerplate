@@ -44,6 +44,11 @@ Camera* camera; //camera pointer to currently selected camera
 float xLast = mWidth / 2;
 float yLast = mHeight / 2;
 bool leftPressed = false;    //left mouse button pressed 
+//variables for assignment
+float prevCoreLambda = 0.5;   //how much core laplacian affects mesh
+float coreLambda = 0.5;    //new core strength to check if it has changed
+int prevCoreIter = 1;
+int coreIter = 1;
 
 Scene scene;
 
@@ -134,10 +139,23 @@ void renderGui(ImGuiIO& io) {
     ImGui::RadioButton("Default", &selectPart, 0);
     ImGui::SameLine();
     ImGui::RadioButton("Core", &selectPart, 1);
+    ImGui::SameLine();
+    ImGui::RadioButton("Completion", &selectPart, 2);
+
     switch (selectPart) {
     case 1:
-        ImGui::Text("Mesh Fairing with uniform weights");
+        ImGui::Text("Mesh Smoothing with uniform weights");
+        ImGui::SliderInt("Iterations", &coreIter, 1, 100);
+        ImGui::SliderFloat("Lambda", &coreLambda, 0.0f, 1.0f);
+        if (coreLambda != prevCoreLambda || coreIter != prevCoreIter) {
+            scene.doCore(coreLambda, coreIter);
+            prevCoreLambda = coreLambda;
+            prevCoreIter = coreIter;
+        }
         scene.currentMesh = 1;
+        break;
+    case 2:
+        ImGui::Text("Minimal Surface");
         break;
     default:
         ImGui::Text("Default unedited mesh");

@@ -1,11 +1,21 @@
 #pragma once
 //std
 #include <algorithm>
+#include <fstream>
+#include <sstream>
 //project
 #include "mesh.hpp"
 
-void printVertex(Vertex v) {
-	std::cout << "Position: {" << v.pos.x << ", " << v.pos.y << ", " << v.pos.z << "}" << std::endl;
+Mesh::Mesh(const Mesh& obj) {
+	//insert all vertices from obj to vertices
+	vertices.insert(vertices.begin(), obj.vertices.begin(), obj.vertices.end());
+	//insert all indices from obj to indices
+	indices.insert(indices.begin(), obj.indices.begin(), obj.indices.end());
+	exVertices.insert(exVertices.begin(), obj.exVertices.begin(), obj.exVertices.end()); //error here
+	buildMesh();
+
+	setupExVertices();
+	copyNeighbours(obj);
 }
 
 Mesh::Mesh(const aiMesh* mesh, const aiScene* scene) {
@@ -41,28 +51,32 @@ Mesh::Mesh(const aiMesh* mesh, const aiScene* scene) {
 	buildMesh();
 }
 
-Mesh::Mesh(const Mesh& obj) {
-	//insert all vertices from obj to vertices
-	vertices.insert(vertices.begin(), obj.vertices.begin(), obj.vertices.end());
-	//insert all indices from obj to indices
-	indices.insert(indices.begin(), obj.indices.begin(), obj.indices.end());	
-	buildMesh();
-}
+Mesh::Mesh(const std::vector<glm::vec3>& positions, const std::vector<unsigned int>& ind) {
+	std::vector<glm::vec3> normals;
+	for (auto i : ind) {
+		indices.push_back(i);
+	}
 
-Mesh::Mesh(const std::vector<Vertex>& v, const std::vector<unsigned int>& i) {
-	vertices.insert(vertices.begin(), v.begin(), v.end());	//insert all vertices from v to vertices
-	indices.insert(indices.begin(), i.begin(), i.end());	//insert all indices from i to indices
+	generateNormals(positions, normals);
+	for (int i = 0; i < positions.size(); i++) {
+		Vertex vertex;
+		vertex.pos = positions[i];
+		vertex.normal = normals[i];
+		vertices.push_back(vertex);
+	}
+
 	buildMesh();
+	setupExVertices();
 }
 
 void Mesh::generateNormals(const std::vector<glm::vec3>& positions, std::vector<glm::vec3>& normals) {
-	normals = std::vector< glm::vec3>(vertices.size());
+	normals = std::vector< glm::vec3>(positions.size());
 	for (int i = 0; i < indices.size(); i += 3) {
 		//get face, assuming all faces are triangles because all provided models are triangles
 		glm::vec3 a = positions[indices[i]];
 		glm::vec3 b = positions[indices[i+1]];
 		glm::vec3 c = positions[indices[i+2]];
-		glm::vec3 normal = glm::normalize(glm::cross((c-b), (a-b)));	//compute face normal
+		glm::vec3 normal = glm::normalize(glm::cross((b-a), (c-a)));	//compute face normal
 		//assign face normals
 		normals[indices[i]] += normal;
 		normals[indices[i + 1]] += normal;
@@ -87,23 +101,31 @@ void Mesh::destroy() {
 }
 
 void Mesh::setupExVertices() {
-	for (auto &v : vertices) {
+	exVertices = std::vector<ExtendedVertex>();
+	for (auto& v : vertices) {
 		exVertices.push_back(ExtendedVertex(v));
+	}
+}
+
+void Mesh::copyNeighbours(const Mesh& m) {
+	for (int i = 0; i < exVertices.size(); i++) {
+		exVertices[i].neighbouringVertices.insert(m.exVertices[i].neighbouringVertices.begin(),
+												  m.exVertices[i].neighbouringVertices.end());
 	}
 }
 
 void Mesh::setVertexNeighbours(std::vector<unsigned int> indices) {
 	//for each vertex get neighbouring two vertices in face
 	//for first vertex get final vertex as well
-	exVertices[0].neighbouringVertices.insert(indices[1]);
-	exVertices[0].neighbouringVertices.insert(indices[indices.size()-1]);
-	for (int i = 1; i < indices.size()-1; i++) {
-		exVertices[i].neighbouringVertices.insert(indices[i - 1]);
-		exVertices[i].neighbouringVertices.insert(indices[i + 1]);
+	exVertices[indices[0]].neighbouringVertices.insert(indices[1]);
+	exVertices[indices[0]].neighbouringVertices.insert(indices[indices.size() -1]);
+	for (int i = 1; i < indices.size() - 1; i++) {
+		exVertices[indices[i]].neighbouringVertices.insert(indices[i-1]);
+		exVertices[indices[i]].neighbouringVertices.insert(indices[i+1]);
 	}
 	//for final vertex get first vertex as well
-	exVertices[indices.size() - 1].neighbouringVertices.insert(indices.size()-2);
-	exVertices[indices.size() - 1].neighbouringVertices.insert(indices[0]);
+	exVertices[indices[indices.size() - 1]].neighbouringVertices.insert(indices[indices.size() - 2]);
+	exVertices[indices[indices.size() - 1]].neighbouringVertices.insert(indices[0]);
 }
 
 void Mesh::buildMesh() {
