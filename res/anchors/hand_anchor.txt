@@ -1,0 +1,26 @@
+#fingers
+#thumb
+i 1205
+i 1037
+#index
+i 1065
+i 56
+#middle
+i 1062
+i 1098
+#ring
+i 796
+i 1097
+#little
+i 1431
+#palm
+i 1145
+i 18
+i 1003
+i 1244
+i 4
+#wrist
+i 1079
+i 1301
+i 1028
+i 418

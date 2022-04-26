@@ -111,6 +111,9 @@ void Mesh::copyNeighbours(const Mesh& m) {
 	for (int i = 0; i < exVertices.size(); i++) {
 		exVertices[i].neighbouringVertices.insert(m.exVertices[i].neighbouringVertices.begin(),
 												  m.exVertices[i].neighbouringVertices.end());
+		//exVertices[i].neighbouringVertices.insert(exVertices[i].neighbouringVertices.begin(),
+		//										  m.exVertices[i].neighbouringVertices.begin(),
+		//										  m.exVertices[i].neighbouringVertices.end());
 	}
 }
 
@@ -119,13 +122,19 @@ void Mesh::setVertexNeighbours(std::vector<unsigned int> indices) {
 	//for first vertex get final vertex as well
 	exVertices[indices[0]].neighbouringVertices.insert(indices[1]);
 	exVertices[indices[0]].neighbouringVertices.insert(indices[indices.size() -1]);
+	//exVertices[indices[0]].neighbouringVertices.push_back(indices[1]);
+	//exVertices[indices[0]].neighbouringVertices.push_back(indices[indices.size() - 1]);
 	for (int i = 1; i < indices.size() - 1; i++) {
 		exVertices[indices[i]].neighbouringVertices.insert(indices[i-1]);
 		exVertices[indices[i]].neighbouringVertices.insert(indices[i+1]);
+		//exVertices[indices[i]].neighbouringVertices.push_back(indices[i - 1]);
+		//exVertices[indices[i]].neighbouringVertices.push_back(indices[i + 1]);
 	}
 	//for final vertex get first vertex as well
 	exVertices[indices[indices.size() - 1]].neighbouringVertices.insert(indices[indices.size() - 2]);
 	exVertices[indices[indices.size() - 1]].neighbouringVertices.insert(indices[0]);
+	//exVertices[indices[indices.size() - 1]].neighbouringVertices.push_back(indices[indices.size() - 2]);
+	//exVertices[indices[indices.size() - 1]].neighbouringVertices.push_back(indices[0]);
 }
 
 void Mesh::buildMesh() {

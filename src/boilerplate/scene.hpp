@@ -15,8 +15,9 @@ class Scene {
 private:
     //variables for assignment
     Eigen::SparseMatrix<double> uniformLaplacian;
+    Eigen::SparseMatrix<double> cotanLaplacian;
     std::vector<Mesh> meshes;
-    std::vector<glm::vec3> anchorPoints;    //used for completion
+    std::vector<unsigned int> anchorIndices;    //used for completion
 
     void processNode(aiNode* node, const aiScene* scene);
     void loadScene(std::string filePath, bool useAssimp);
@@ -26,12 +27,22 @@ public:
 
     Scene() {}
     Scene(std::string filePath);
+    void setAnchorPoints(std::string filePath); //for completion
     
-    void doCore(float coreStrength, int coreIter) {
+    void doCore(float lambda, int iter) {
         std::cout << "Recalculating core" << std::endl;
-        meshes[1] = MeshFairing::core(meshes[0], coreStrength, uniformLaplacian);
-        for (int i = 0; i < coreIter; i++) {
-            meshes[1] = MeshFairing::core(meshes[1], coreStrength, uniformLaplacian);
+        meshes[1] = MeshFairing::applyLaplacian(meshes[0], lambda, uniformLaplacian);
+        for (int i = 0; i < iter; i++) {
+            meshes[1] = MeshFairing::applyLaplacian(meshes[1], lambda, uniformLaplacian);
+        }
+        std::cout << "Finished" << std::endl;
+    }
+
+    void doChallengeCotan(float lambda, int iter) {
+        std::cout << "Recalculating challenge cotan" << std::endl;
+        meshes[3] = MeshFairing::applyLaplacian(meshes[0], lambda, cotanLaplacian);
+        for (int i = 0; i < iter; i++) {
+            meshes[3] = MeshFairing::applyLaplacian(meshes[3], lambda, cotanLaplacian);
         }
         std::cout << "Finished" << std::endl;
     }

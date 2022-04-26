@@ -33,6 +33,7 @@ public:
 	ExtendedVertex(const ExtendedVertex& obj) { 
 		vertex = obj.vertex; 
 		neighbouringVertices.insert(obj.neighbouringVertices.begin(), obj.neighbouringVertices.end());
+		//neighbouringVertices.insert(neighbouringVertices.begin(), obj.neighbouringVertices.begin(), obj.neighbouringVertices.end());
 	}
 
 	Vertex& getVertex() { return vertex; }

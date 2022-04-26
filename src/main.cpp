@@ -45,10 +45,16 @@ float xLast = mWidth / 2;
 float yLast = mHeight / 2;
 bool leftPressed = false;    //left mouse button pressed 
 //variables for assignment
+//core
 float prevCoreLambda = 0.5;   //how much core laplacian affects mesh
-float coreLambda = 0.5;    //new core strength to check if it has changed
-int prevCoreIter = 1;
+float coreLambda = 0.5;
+int prevCoreIter = 1;   //number of iterations to run core
 int coreIter = 1;
+//challenge
+float prevChaLambda = 0.5;  //how much challenge laplacian affects mesh
+float chaLambda = 0.5;
+int prevChaIter = 1;    //number of iterations to run challenge
+int chaIter = 1;
 
 Scene scene;
 
@@ -113,16 +119,16 @@ void renderGui(ImGuiIO& io) {
     }
     ImGui::Separator();
     ImGui::Text("Mesh");
-    static char filename[1024] = "";
+    static char meshFileName[1024] = "";
     if (ImGui::Button("Load Mesh")) {
         ImGui::OpenPopup("Load Mesh");
     }
     if (ImGui::BeginPopup("Load Mesh")) {
-        ImGui::InputText("Filename", filename, 1024);
+        ImGui::InputText("Filename", meshFileName, 1024);
         if (ImGui::Button("Load")) {
             //load mesh here
             scene.destroy();
-            scene = Scene(filename);
+            scene = Scene(meshFileName);
             ImGui::CloseCurrentPopup();
         }
         ImGui::SameLine();
@@ -131,6 +137,23 @@ void renderGui(ImGuiIO& io) {
         }
         ImGui::EndPopup();
     }
+    static char anchorFileName[1024] = "";
+    if (ImGui::Button("Load Anchor Points")) {
+        ImGui::OpenPopup("Load Anchor Points");
+    }
+    if (ImGui::BeginPopup("Load Anchor Points")) {
+        ImGui::InputText("Filename", anchorFileName, 1024);
+        if (ImGui::Button("Load")) {
+            scene.setAnchorPoints(anchorFileName);
+            ImGui::CloseCurrentPopup();
+        }
+        ImGui::SameLine();
+        if (ImGui::Button("Close")) {
+            ImGui::CloseCurrentPopup();
+        }
+        ImGui::EndPopup();
+    }
+
     ImGui::Checkbox("Wireframe", &drawWireframe);
 
     //------ CGRA409 Part ------
@@ -141,6 +164,7 @@ void renderGui(ImGuiIO& io) {
     ImGui::RadioButton("Core", &selectPart, 1);
     ImGui::SameLine();
     ImGui::RadioButton("Completion", &selectPart, 2);
+    ImGui::RadioButton("Challenge(Cotan)", &selectPart, 3);
 
     switch (selectPart) {
     case 1:
@@ -156,6 +180,18 @@ void renderGui(ImGuiIO& io) {
         break;
     case 2:
         ImGui::Text("Minimal Surface");
+        scene.currentMesh = 2;
+        break;
+    case 3:
+        ImGui::Text("Mesh Smoothing with cotan weights");
+        ImGui::SliderInt("Iterations", &chaIter,1,5);
+        ImGui::SliderFloat("Lambda", &chaLambda, 0.0f,1.0f);
+        if (chaLambda != prevChaLambda || chaIter != prevChaIter) {
+            scene.doChallengeCotan(chaLambda, chaIter);
+            prevChaLambda = chaLambda;
+            prevChaIter = chaIter;
+        }
+        scene.currentMesh = 3;
         break;
     default:
         ImGui::Text("Default unedited mesh");

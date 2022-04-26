@@ -101,16 +101,42 @@ Scene::Scene(std::string filePath) {
         return;
     }
 
-    //do mesh fairing on mesh if there's only 1 mesh
+    //do assignment stuff on mesh if there's only 1 mesh
     if (meshes.size() == 1) {
         //load neighbouring vertices info for mesh fairing
         meshes[0].setupExVertices();
         std::cout << "calculating neighbours" << std::endl;
         loadNeighbourVert(filePath, meshes[0]);
-        std::cout << "applying mesh fairing" << std::endl;
+        std::cout << "building laplacians" << std::endl;
         MeshFairing::buildLaplacianUniform(meshes[0], uniformLaplacian);
-        //do core mesh smoothing
-        meshes.push_back(MeshFairing::core(meshes[0], 0.5, uniformLaplacian));
-        std::cout << "finished" << std::endl;
+        MeshFairing::buildLaplacianCotan(meshes[0], cotanLaplacian);
+        //apply smoothing
+        std::cout << "applying mesh smoothing" << std::endl;
+        meshes.push_back(MeshFairing::applyLaplacian(meshes[0], 0.5, uniformLaplacian));
+        meshes.push_back(meshes[0]);    //add completion mesh for later
+        meshes.push_back(MeshFairing::applyLaplacian(meshes[0], 0.5, cotanLaplacian));
+        std::cout << "finished smoothing" << std::endl;
     }
+}
+
+void Scene::setAnchorPoints(std::string filePath) {
+    if(meshes.empty()) {    //don't bother
+        std::cout << "ERROR: scene not loaded, load scene first" << std::endl;
+        return;
+    }
+    std::ifstream in(filePath, std::ios::in);
+    std::string line;
+    while (std::getline(in, line)) {
+        std::stringstream ss(line);
+        std::string token;
+        std::getline(ss, token, ' ');
+        if (token == "i") {
+            std::getline(ss, token, ' ');
+            anchorIndices.push_back(stoi(token));
+        }
+    }
+    //since anchor and mesh now exist, create core mesh
+    std::cout << "applying minimal surface" << std::endl;
+    meshes[2] = MeshFairing::minimalSurface(meshes[0], anchorIndices, uniformLaplacian);
+    std::cout << "finished" << std::endl;
 }
